@@ -1,0 +1,11 @@
+.env
+chroma_db
+CSV_DB
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+*.db
+*.sqlite
+*.sqlite3
+*.log
