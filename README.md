@@ -1,64 +1,105 @@
-# LangGraph RAG 與 Guardrail 實現
+# 開放資料對話系統
 
-這個專案使用 LangGraph 實現了一個帶有 RAG（檢索增強生成）和 Guardrail 功能的對話系統。
+這是一個基於 Streamlit 開發的開放資料對話系統，整合了 RAG（檢索增強生成）和數據分析功能，能夠智能地回答用戶關於開放資料集的問題。
 
 ## 功能特點
 
-- 使用 LangGraph 構建工作流
-- 實現 RAG 功能，支援文檔檢索和上下文增強
-- 包含 Guardrail 檢查機制
-- 使用 Chroma 作為向量存儲
-- 支援自定義文檔添加
+- 🤖 智能對話：使用 RAG 技術理解用戶意圖並找到相關資料集
+- 📊 數據分析：自動下載和處理 CSV 數據，提供數據分析結果
+- 💡 智能建議：當無法直接回答時，提供相關的問題建議
+- 🔄 多輪對話：支持連續對話，保持對話上下文
+- 🎯 精準回答：結合資料集描述和實際數據內容，提供準確的回答
 
-## 安裝
+## 系統架構
 
-1. 克隆專案後，安裝依賴：
+系統由兩個主要模塊組成：
+
+1. **RAG Guardrail 模塊** (`rag_guardrail.py`)
+   - 負責理解用戶問題
+   - 檢索相關資料集
+   - 提供問題建議
+   - 控制對話流程
+
+2. **數據分析模塊** (`dataset_qa.py`)
+   - 處理 CSV 數據的下載和加載
+   - 生成數據摘要
+   - 分析用戶問題
+   - 提供數據相關的回答
+
+## 安裝步驟
+
+1. 克隆專案：
+```bash
+git clone [專案地址]
+cd [專案目錄]
+```
+
+2. 安裝依賴：
 ```bash
 pip install -r requirements.txt
 ```
 
-2. 創建 `.env` 文件並添加 OpenAI API 密鑰：
+3. 設置環境變量：
+創建 `.env` 文件並添加以下內容：
 ```
-OPENAI_API_KEY=your_api_key_here
+OPENAI_API_KEY=你的OpenAI API密鑰
 ```
 
 ## 使用方法
 
-1. 運行示例代碼：
+1. 啟動應用：
 ```bash
-python rag_guardrail.py
+streamlit run app.py
 ```
 
-2. 添加自定義文檔：
-```python
-from rag_guardrail import add_documents
-
-documents = [
-    "你的文檔內容1",
-    "你的文檔內容2"
-]
-add_documents(documents)
+2. 在瀏覽器中訪問：
+```
+http://localhost:8501
 ```
 
-3. 處理查詢：
-```python
-from rag_guardrail import process_query
+3. 開始對話：
+   - 在輸入框中輸入您的問題
+   - 系統會自動檢索相關資料集
+   - 如果找到匹配的資料集，會提供數據分析結果
+   - 如果沒有找到完全匹配的資料集，會提供相關的問題建議
 
-response = process_query("你的問題")
-print(response)
+## 示例問題
+
+- "客家桐花在幾月的時候開？"
+- "2022桐花季經典45條桐花小旅行遊程有哪些路線和特色活動？"
+- "這個資料集包含哪些區域的遊程？"
+
+## 技術棧
+
+- Python 3.8+
+- Streamlit
+- LangChain
+- OpenAI API
+- Pandas
+- ChromaDB
+
+## 目錄結構
+
+```
+.
+├── app.py              # Streamlit 主應用
+├── rag_guardrail.py    # RAG 處理模塊
+├── dataset_qa.py       # 數據分析模塊
+├── requirements.txt    # 依賴包列表
+├── .env               # 環境變量配置
+└── CSV_DB/            # CSV 數據存儲目錄
 ```
 
-## 工作流程
+## 注意事項
 
-1. 接收用戶查詢
-2. 檢索相關文檔
-3. 進行 Guardrail 檢查
-4. 生成響應
+1. 確保有穩定的網絡連接，因為系統需要下載數據集
+2. 首次查詢特定資料集時，系統會自動下載相關 CSV 文件
+3. 請確保有足夠的磁盤空間存儲數據集
 
-## 自定義 Guardrail
+## 貢獻指南
 
-可以在 `check_guardrail` 函數中添加自定義的檢查規則，例如：
-- 內容審核
-- 敏感信息過濾
-- 輸出格式驗證
-- 特定規則檢查 
+歡迎提交 Issue 和 Pull Request 來幫助改進這個專案。
+
+## 授權
+
+[授權類型] - 詳見 LICENSE 文件 
