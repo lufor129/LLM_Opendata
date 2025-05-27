@@ -18,7 +18,7 @@ class AgentState(TypedDict):
     dataset_name: Annotated[str, "使用者想搜尋的目標資料集"]
     target_dataset: Annotated[Document, "目標資料集"]
     intention: Annotated[str, "使用者對資料集的意圖"]
-    quert_docments: Annotated[Sequence[Document], "檢索到的文件標題們"]
+    quert_documents: Annotated[Sequence[Document], "檢索到的文件標題們"]
     suggestions: Annotated[dict, "可能的問題建議"]
     response: Annotated[str, "AI 響應"]
     is_allowed: Annotated[bool, "是否允許回答"]
@@ -41,7 +41,7 @@ def retrieve_context(state: AgentState) -> AgentState:
     query = state["messages"][-1].content
     
     docs = vectorstore.similarity_search(query, k=3)
-    return {"quert_docments": docs}
+    return {"quert_documents": docs}
 
 # 定義問題分析函數
 def analyze_question(state: AgentState) -> AgentState:
@@ -67,11 +67,11 @@ def analyze_question(state: AgentState) -> AgentState:
                   "}}"),
         ("human", "{query}")
     ])
-    
+    query = state["messages"][-1].content
     chain = prompt | llm | StrOutputParser()
     response = chain.invoke({
         "query": query,
-        "context_titles_str": "\n".join([doc.metadata.get("資料集名稱", "") for doc in state["quert_docments"]])
+        "context_titles_str": "\n".join([doc.metadata.get("資料集名稱", "") for doc in state["quert_documents"]])
     })
 
     # 將 response 轉換為 JSON 格式
@@ -81,10 +81,11 @@ def analyze_question(state: AgentState) -> AgentState:
     except:
         dataset_name = "其他"
         intention = "查詢"
+        result = {"dataset": dataset_name}
 
     if result["dataset"] != "其他":
-        match_index = [doc.metadata.get("資料集名稱", "") for doc in state["quert_docments"]].index(result["dataset"])
-        target_dataset = state["quert_docments"][match_index]
+        match_index = [doc.metadata.get("資料集名稱", "") for doc in state["quert_documents"]].index(result["dataset"])
+        target_dataset = state["quert_documents"][match_index]
         dataset_name = result["dataset"]
         intention = result["intention"]
     else:
@@ -114,7 +115,7 @@ def generate_question_suggestions(state: AgentState) -> AgentState:
     # 獲取所有檢索到的文檔標題
     dataset_title_description = [
         "Title: {}, desceiption: {}\n\n".format(doc.metadata.get("資料集名稱", ""), doc.metadata.get("資料集描述", ""))
-        for doc in state["quert_docments"]]
+        for doc in state["quert_documents"]]
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "你是一個問題生成助手。請根據以下資料集標題，生成3個可能的用戶問題。\n"
@@ -228,7 +229,7 @@ class RAGGuardrail:
     def process_query(self, query: str):
         state = {
             "messages": [HumanMessage(content=query)],
-            "quert_docments": [],
+            "quert_documents": [],
             "suggestions": {},
             "dataset_name": "",
             "intention": "",
@@ -240,8 +241,8 @@ class RAGGuardrail:
         
         # 運行工作流
         result = self.app.invoke(state)
-        print(f"響應: {result['response']}")
-        return state
+        # print(f"響應: {result['response']}\n")
+        return result
 
 
 if __name__ == "__main__":
@@ -256,4 +257,3 @@ if __name__ == "__main__":
     for query in test_queries:
         print(f"\n查詢: {query}")
         state = rag_guardrail.process_query(query)
-        print(state)

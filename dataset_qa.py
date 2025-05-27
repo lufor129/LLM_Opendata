@@ -19,11 +19,11 @@ urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 定義狀態類型
 class AgentState(TypedDict):
-    messages: Annotated[Sequence[BaseMessage], "對話歷史"]
     dataset_info: Annotated[Dict[str, Any], "資料集信息"]
     csv_data: Annotated[pd.DataFrame, "CSV數據"]
     csv_summary: Annotated[str, "CSV摘要"]
     response: Annotated[str, "AI響應"]
+    query: Annotated[str, "用戶查詢"]
 
 # 初始化 LLM
 llm = ChatOpenAI(model="o4-mini")
@@ -139,7 +139,7 @@ def generate_response(state: AgentState) -> AgentState:
     Returns:
         AgentState: 更新後的狀態
     """
-    query = state["messages"][-1].content
+    query = state["query"]
     df = state["csv_data"]
     dataset_info = state["dataset_info"]
     summary = state["csv_summary"]
@@ -190,21 +190,24 @@ def process_query(dataset_info: Dict[str, Any], query: str) -> str:
     Returns:
         str: AI響應
     """
-    # 加載或下載CSV
-    df = load_or_download_csv(dataset_info)
-    
-    # 初始化狀態
-    state = {
-        "messages": [HumanMessage(content=query)],
-        "dataset_info": dataset_info,
-        "csv_data": df,
-        "csv_summary": "",
-        "response": ""
-    }
-    
-    # 運行工作流
-    result = app.invoke(state)
-    return result["response"]
+    try:
+        # 加載或下載CSV
+        df = load_or_download_csv(dataset_info)
+        
+        # 初始化狀態
+        state = {
+            "dataset_info": dataset_info,
+            "csv_data": df,
+            "csv_summary": "",
+            "response": "",
+            "query": query
+        }
+        
+        # 運行工作流
+        result = app.invoke(state)
+        return result["response"]
+    except Exception as e:
+        return f"處理數據時發生錯誤：{str(e)}"
 
 if __name__ == "__main__":
     # 測試數據
