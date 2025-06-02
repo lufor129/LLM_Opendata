@@ -85,7 +85,19 @@ def load_or_download_csv(dataset_info: Dict[str, Any]) -> pd.DataFrame:
     
     # 如果文件不存在，則下載
     if not os.path.exists(csv_path):
-        csv_url = dataset_info["資料下載網址"].split(';')[0]  # 取第一個URL
+        # 獲取所有URL並過濾出CSV格式的URL
+        urls = dataset_info["資料下載網址"].split(';')
+
+        # 使用 format=CSV 作為判斷條件
+        csv_urls = [url for url in urls if 'format=csv' in url.lower() or "csv" in url.lower()]
+
+        # if not csv_urls:
+        #     raise Exception("找不到CSV格式的下載網址")
+            
+        if len(csv_urls) > 0:
+            csv_url = csv_urls[0]  # 使用第一個CSV URL
+        else:
+            csv_url = urls[0]
         if not download_csv(csv_url, csv_path):
             raise Exception("無法下載CSV文件")
     
@@ -113,12 +125,13 @@ def summarize_csv(state: AgentState) -> AgentState:
     dataset_info = state["dataset_info"]
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "你是一個數據分析助手。請根據以下信息生成CSV數據的摘要：\n"
+        ("system", "你是一個專業的數據分析師。請直接分析以下數據並提供摘要：\n"
                   "資料集名稱：{dataset_name}\n"
                   "資料集描述：{dataset_desc}\n"
-                  "數據預覽：\n{data_preview}\n\n"
-                  "請生成一個簡潔的摘要，包含數據的主要特點和關鍵信息。"),
-        ("human", "請生成數據摘要。")
+                  "數據內容：\n{data_preview}\n\n"
+                  "請直接描述你觀察到的數據特點\n"
+                  "請用自然語言描述，不要生成代碼。"),
+        ("human", "請分析這些數據並提供摘要。")
     ])
     
     chain = prompt | llm | StrOutputParser()
@@ -128,7 +141,12 @@ def summarize_csv(state: AgentState) -> AgentState:
         "data_preview": df.head().to_string()
     })
     
-    return {"csv_summary": summary}
+    # 添加資料集連結
+    dataset_id = dataset_info["資料集識別碼"]
+    dataset_url = f"https://data.gov.tw/dataset/{dataset_id}"
+    summary_with_link = f"{summary}\n\n您可以在以下網址查看完整資料集：\n{dataset_url}"
+    
+    return {"response": summary_with_link}
 
 def generate_response(state: AgentState) -> AgentState:
     """生成回答
@@ -174,8 +192,8 @@ workflow.add_node("generate", generate_response)
 
 # 設置邊
 workflow.add_edge(START, "summarize")
-workflow.add_edge("summarize", "generate")
-workflow.add_edge("generate", END)
+workflow.add_edge("summarize", END)
+# workflow.add_edge("generate", END)
 
 # 編譯工作流
 app = workflow.compile()
@@ -212,6 +230,7 @@ def process_query(dataset_info: Dict[str, Any], query: str) -> str:
 if __name__ == "__main__":
     # 測試數據
     dataset_info = {
+        "資料集識別碼": "7276",
         "主要欄位說明": "no(序);area_name(區域);city_name(區域2);tour(遊程名稱);LocalCallService(市話)",
         "服務分類": "休閒旅遊",
         "資料下載網址": "https://cloud.hakka.gov.tw/Pub/Opendata/DTST20230500092.csv;https://cloud.hakka.gov.tw/Pub/Opendata/DTST20230500092.json;https://cloud.hakka.gov.tw/Pub/Opendata/DTST20230500092.xml",
