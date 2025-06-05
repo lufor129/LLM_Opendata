@@ -5,8 +5,6 @@ import pandas as pd
 import os
 from dotenv import load_dotenv
 import requests
-from bs4 import BeautifulSoup
-import re
 
 # 載入環境變數
 load_dotenv()
