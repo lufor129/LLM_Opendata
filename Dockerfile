@@ -23,9 +23,14 @@ EXPOSE 8080
 
 # 設置環境變量
 ENV PORT=8080
+ENV PYTHONUNBUFFERED=1
 
 # 創建啟動腳本
-RUN echo '#!/bin/bash\npython csv_to_rag.py\nstreamlit run app.py --server.port $PORT --server.address 0.0.0.0' > /app/start.sh \
+RUN echo '#!/bin/bash\n\
+echo "Starting data processing..."\n\
+python csv_to_rag.py &\n\
+echo "Starting Streamlit server..."\n\
+streamlit run app.py --server.port $PORT --server.address 0.0.0.0' > /app/start.sh \
     && chmod +x /app/start.sh
 
 # 使用啟動腳本

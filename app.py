@@ -120,7 +120,6 @@ def process_ai_response(prompt, rag_guardrail):
                                 "主要欄位說明": gl_state["target_dataset"].metadata.get("主要欄位說明", ""),
                                 "資料集識別碼": gl_state["target_dataset"].metadata.get("資料集識別碼", "")
                             }
-                            print(gl_state["target_dataset"] )
                             AI_feedback = dataset_process_query(dataset_info, prompt)
                         except Exception as e:
                             AI_feedback = f"處理數據時發生錯誤：{str(e)}"

@@ -177,7 +177,7 @@ def main():
     # 示例 2：使用元數據
     metadata_columns = ["資料集識別碼","資料集名稱", "資料下載網址", "資料集描述", "主要欄位說明", "服務分類"]  # 根據實際CSV文件的列名修改
     csv_to_rag.process_csv_with_metadata(
-        "Opendata_CSV._testcsv",
+        "Opendata_CSV_test.csv",
         metadata_columns=metadata_columns,
         encoding='utf-8',
         batch_size=100
