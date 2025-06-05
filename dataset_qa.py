@@ -125,20 +125,21 @@ def summarize_csv(state: AgentState) -> AgentState:
     dataset_info = state["dataset_info"]
     
     prompt = ChatPromptTemplate.from_messages([
-        ("system", "你是一個專業的數據分析師。請直接分析以下數據並提供摘要：\n"
+        ("system", "你是一個數據分析助手。請根據以下信息回答用戶的問題\n"
                   "資料集名稱：{dataset_name}\n"
                   "資料集描述：{dataset_desc}\n"
                   "數據內容：\n{data_preview}\n\n"
-                  "請直接描述你觀察到的數據特點\n"
+                  "請直接描述你根據用戶問題觀察到的數據特點\n"
                   "請用自然語言描述，不要生成代碼。"),
-        ("human", "請分析這些數據並提供摘要。")
+        ("human", "{query}")
     ])
     
     chain = prompt | llm | StrOutputParser()
     summary = chain.invoke({
         "dataset_name": dataset_info["資料集名稱"],
         "dataset_desc": dataset_info["資料集描述"],
-        "data_preview": df.head().to_string()
+        "data_preview": df.head().to_string(),
+        "query": state["query"]
     })
     
     # 添加資料集連結
