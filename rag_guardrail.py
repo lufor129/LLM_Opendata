@@ -126,7 +126,7 @@ def generate_question_suggestions(state: AgentState) -> AgentState:
                   "3. 針對資料集的具體內容\n"
                   "4. 符合一般用戶的查詢習慣\n\n"
                   "資料集標題與描述：\n{dataset_title_description}\n\n"
-                  "請用JSON格式返回，格式如下：\n"
+                  "請用JSON格式返回，格式如下 （請使用json.loads可以讀取的格式，不要用Markdown格式）：\n"
                   "{{\n"
                   '  "suggestions": {{\n'
                   '    "資料集1": "問題1",\n'
