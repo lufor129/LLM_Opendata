@@ -116,6 +116,7 @@ def generate_question_suggestions(state: AgentState) -> AgentState:
     dataset_title_description = [
         "Title: {}, desceiption: {}\n\n".format(doc.metadata.get("資料集名稱", ""), doc.metadata.get("資料集描述", ""))
         for doc in state["quert_documents"]]
+    print("Dataset Title Description: ", dataset_title_description)
     
     prompt = ChatPromptTemplate.from_messages([
         ("system", "你是一個問題生成助手。請根據以下資料集標題，生成3個可能的用戶問題。\n"
@@ -138,11 +139,12 @@ def generate_question_suggestions(state: AgentState) -> AgentState:
     
     chain = prompt | llm | StrOutputParser()
     response = chain.invoke({"dataset_title_description": "\n".join(dataset_title_description)})
-    
+    print("Response: ", response)
     try:
         import json
         result = json.loads(response)
         suggestions = result["suggestions"]
+        print("Suggestions: ", suggestions)
         
         # 構建建議信息
         suggestion_text = "我找到以下相關資料集，您可以嘗試詢問：\n\n"
